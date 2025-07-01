@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Comic Neue', cursive;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-bluey-blue to-bluey-purple text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-r from-bluey-orange to-bluey-yellow text-white font-bold py-3 px-6 rounded-full text-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300;
+  }
+  
+  .card-game {
+    @apply bg-white rounded-3xl shadow-2xl p-8 border-4 border-bluey-blue;
+  }
+  
+  .number-display {
+    @apply text-6xl md:text-8xl font-bold text-bluey-blue drop-shadow-lg;
+  }
+  
+  .math-object {
+    @apply w-16 h-16 md:w-20 md:h-20 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300;
+  }
+}
