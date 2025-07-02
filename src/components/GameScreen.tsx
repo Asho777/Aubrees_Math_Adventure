@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Trophy, ArrowRight, Home, Volume2 } from 'lucide-react'
 import Confetti from 'react-confetti'
 import { supabase, User, GameProgress } from '../lib/supabase'
+import { useSuccessAudio } from '../hooks/useSuccessAudio'
 
 interface GameScreenProps {
   user: User
@@ -67,6 +68,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
   const [isCorrect, setIsCorrect] = useState(false)
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [showLevelComplete, setShowLevelComplete] = useState(false)
+  
+  const { playSuccessSound } = useSuccessAudio()
 
   const currentOperation = operations.find(op => op.name === user.current_operation)!
   const maxLevel = currentOperation.levels
@@ -204,6 +207,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
       const congratulation = getRandomCongratulation()
       setFeedback(`${congratulation}, ${user.username}! You're brilliant! 🌟`)
       setShowCelebration(true)
+      
+      // Play success sound
+      playSuccessSound()
       
       setTimeout(() => {
         setShowCelebration(false)
@@ -516,20 +522,45 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
                 </div>
               </div>
 
-              {/* Feedback */}
+              {/* Enhanced Feedback with Bouncing Animation */}
               <AnimatePresence>
                 {feedback && (
                   <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    className={`mt-6 p-4 rounded-2xl font-bold text-lg ${
+                    initial={{ y: 20, opacity: 0, scale: 0.8 }}
+                    animate={{ 
+                      y: 0, 
+                      opacity: 1, 
+                      scale: 1,
+                      ...(isCorrect && {
+                        y: [-5, 5, -5, 5, 0],
+                        x: [-3, 3, -3, 3, 0],
+                        rotate: [-2, 2, -2, 2, 0]
+                      })
+                    }}
+                    exit={{ y: -20, opacity: 0, scale: 0.8 }}
+                    transition={{
+                      duration: isCorrect ? 1.5 : 0.5,
+                      repeat: isCorrect ? 2 : 0,
+                      repeatType: "reverse"
+                    }}
+                    className={`mt-6 p-6 rounded-3xl font-bold border-4 ${
                       isCorrect 
-                        ? 'bg-green-100 text-green-800 border-2 border-green-300' 
-                        : 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                        ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-400 text-4xl shadow-2xl' 
+                        : 'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 border-blue-400 text-2xl shadow-lg'
                     }`}
                   >
-                    {feedback}
+                    <motion.div
+                      animate={isCorrect ? {
+                        scale: [1, 1.1, 1, 1.05, 1],
+                      } : {}}
+                      transition={{
+                        duration: 0.8,
+                        repeat: isCorrect ? Infinity : 0,
+                        repeatDelay: 0.5
+                      }}
+                    >
+                      {feedback}
+                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>

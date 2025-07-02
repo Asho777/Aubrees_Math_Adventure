@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Sparkles } from 'lucide-react'
+import { Play, Sparkles, Volume2, VolumeX } from 'lucide-react'
+import { useAudio } from '../hooks/useAudio'
 
 interface SplashScreenProps {
   onStart: (username: string) => void
@@ -8,16 +9,55 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
   const [username, setUsername] = useState('')
+  const [isMuted, setIsMuted] = useState(false)
+  const { playAudio, stopAudio } = useAudio()
+
+  useEffect(() => {
+    // Start playing splash music when component mounts
+    if (!isMuted) {
+      playAudio('splash-music.mp3')
+    }
+
+    // Cleanup: stop music when component unmounts
+    return () => {
+      stopAudio()
+    }
+  }, [])
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted)
+    if (!isMuted) {
+      stopAudio()
+    } else {
+      playAudio('splash-music.mp3')
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (username.trim()) {
+      // Stop splash music before starting game
+      stopAudio()
       onStart(username.trim())
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Mute/Unmute Button */}
+      <motion.button
+        onClick={toggleMute}
+        className="absolute top-4 right-4 z-20 p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        {isMuted ? (
+          <VolumeX className="w-6 h-6 text-bluey-blue" />
+        ) : (
+          <Volume2 className="w-6 h-6 text-bluey-blue" />
+        )}
+      </motion.button>
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {[...Array(20)].map((_, i) => (
