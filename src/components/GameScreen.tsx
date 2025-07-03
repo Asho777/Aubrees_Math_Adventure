@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Trophy, ArrowRight, Home, Volume2 } from 'lucide-react'
+import { Star, Trophy, ArrowRight, Home, Volume2, X } from 'lucide-react'
 import Confetti from 'react-confetti'
 import { supabase, User, GameProgress } from '../lib/supabase'
 import { useAudioWithFetch } from '../hooks/useAudioWithFetch'
@@ -51,6 +51,15 @@ const congratulationsMessages = [
   'Whow Whew'
 ]
 
+const endingMessages = [
+  "You're Brilliant",
+  "Fantastic Work",
+  "The Best",
+  "Wonderful Effort",
+  "You're Good",
+  "Champion"
+]
+
 const countingObjects = [
   '🎾', '🏀', '⚽', '🏈', '🎱', '🏐', '🏓', '🥎',
   '🍎', '🍊', '🍌', '🍇', '🍓', '🥝', '🍑', '🥭',
@@ -69,6 +78,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
   const [isCorrect, setIsCorrect] = useState(false)
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [showLevelComplete, setShowLevelComplete] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [endingMessageIndex, setEndingMessageIndex] = useState(0)
   const { isMuted, toggleMute, stopAudio, playSuccessSound } = useAudioWithFetch()
 
   const currentOperation = operations.find(op => op.name === user.current_operation)!
@@ -91,6 +102,12 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
   const getRandomCongratulation = () => {
     const randomMessage = congratulationsMessages[Math.floor(Math.random() * congratulationsMessages.length)]
     return randomMessage
+  }
+
+  const getNextEndingMessage = () => {
+    const message = endingMessages[endingMessageIndex]
+    setEndingMessageIndex((prev) => (prev + 1) % endingMessages.length)
+    return message
   }
 
   const generateMultipleChoices = (correctAnswer: number): number[] => {
@@ -207,7 +224,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
     if (correct) {
       setScore(score + 10)
       const congratulation = getRandomCongratulation()
-      setFeedback(`${congratulation}, ${user.username}! You're brilliant! 🌟`)
+      const endingMessage = getNextEndingMessage()
+      setFeedback(`${congratulation}, ${user.username}! ${endingMessage}! 🌟`)
       setShowCelebration(true)
       
       // Play success sound
@@ -234,7 +252,11 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
     }
   }
 
-  const handleReset = async () => {
+  const handleResetClick = () => {
+    setShowResetConfirm(true)
+  }
+
+  const handleResetConfirm = async () => {
     // Reset user to level 1 of addition
     await supabase
       .from('users')
@@ -247,6 +269,10 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
 
     // Refresh the page to get updated user data
     window.location.reload()
+  }
+
+  const handleResetCancel = () => {
+    setShowResetConfirm(false)
   }
 
   const handleLevelComplete = async () => {
@@ -603,9 +629,58 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
         </AnimatePresence>
       </div>
 
+      {/* Reset Confirmation Dialog */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl"
+            >
+              <div className="text-center">
+                <div className="text-6xl mb-4">🤔</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-bluey-blue mb-4">
+                  Are you sure you want to reset your game?
+                </h3>
+                <p className="text-bluey-purple mb-6 text-sm sm:text-base">
+                  This will take you back to Level 1 of Addition and you'll lose your current progress.
+                </p>
+                
+                <div className="flex gap-3 sm:gap-4 justify-center">
+                  <motion.button
+                    onClick={handleResetConfirm}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 sm:px-8 rounded-2xl border-4 border-green-600 shadow-lg transition-all text-sm sm:text-base"
+                  >
+                    Yes, Reset
+                  </motion.button>
+                  
+                  <motion.button
+                    onClick={handleResetCancel}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 sm:px-8 rounded-2xl border-4 border-red-600 shadow-lg transition-all text-sm sm:text-base"
+                  >
+                    No, Keep Playing
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Bluey Character - Now a Reset Button */}
       <motion.button
-        onClick={handleReset}
+        onClick={handleResetClick}
         className="fixed bottom-2 right-2 sm:bottom-4 sm:right-4 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-bluey-blue to-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:shadow-3xl transition-all"
         animate={{
           y: [-5, 5, -5],
