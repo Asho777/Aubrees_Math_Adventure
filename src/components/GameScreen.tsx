@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Trophy, ArrowRight, Home, Volume2 } from 'lucide-react'
 import Confetti from 'react-confetti'
 import { supabase, User, GameProgress } from '../lib/supabase'
-import { useSuccessAudio } from '../hooks/useSuccessAudio'
+import { useAudio } from '../hooks/useAudio'
+import SoundButton from './SoundButton'
 
 interface GameScreenProps {
   user: User
@@ -68,13 +69,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
   const [isCorrect, setIsCorrect] = useState(false)
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [showLevelComplete, setShowLevelComplete] = useState(false)
-  
-  const { playSuccessSound } = useSuccessAudio()
+  const { isMuted, toggleMute, stopAudio, playSuccessSound } = useAudio()
 
   const currentOperation = operations.find(op => op.name === user.current_operation)!
   const maxLevel = currentOperation.levels
 
   useEffect(() => {
+    // Stop splash music when entering game screen
+    stopAudio()
     generateQuestion()
   }, [user.current_level, user.current_operation])
 
@@ -209,7 +211,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
       setShowCelebration(true)
       
       // Play success sound
-      playSuccessSound()
+      await playSuccessSound()
       
       setTimeout(() => {
         setShowCelebration(false)
@@ -414,6 +416,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
     <div className="min-h-screen p-4 relative">
       {showCelebration && <Confetti recycle={false} numberOfPieces={200} />}
       
+      <SoundButton isMuted={isMuted} onToggle={toggleMute} />
+      
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <button
@@ -532,35 +536,23 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
                       opacity: 1, 
                       scale: 1,
                       ...(isCorrect && {
-                        y: [-5, 5, -5, 5, 0],
-                        x: [-3, 3, -3, 3, 0],
-                        rotate: [-2, 2, -2, 2, 0]
+                        y: [-5, 5, -5],
+                        rotate: [-2, 2, -2]
                       })
                     }}
                     exit={{ y: -20, opacity: 0, scale: 0.8 }}
                     transition={{
-                      duration: isCorrect ? 1.5 : 0.5,
-                      repeat: isCorrect ? 2 : 0,
-                      repeatType: "reverse"
+                      y: isCorrect ? { duration: 0.5, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 },
+                      rotate: isCorrect ? { duration: 0.6, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 },
+                      scale: { duration: 0.3 }
                     }}
-                    className={`mt-6 p-6 rounded-3xl font-bold border-4 ${
+                    className={`mt-6 p-6 rounded-2xl font-bold ${
                       isCorrect 
-                        ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-400 text-4xl shadow-2xl' 
-                        : 'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 border-blue-400 text-2xl shadow-lg'
+                        ? 'bg-green-100 text-green-800 border-2 border-green-300 text-4xl' 
+                        : 'bg-blue-100 text-blue-800 border-2 border-blue-300 text-2xl'
                     }`}
                   >
-                    <motion.div
-                      animate={isCorrect ? {
-                        scale: [1, 1.1, 1, 1.05, 1],
-                      } : {}}
-                      transition={{
-                        duration: 0.8,
-                        repeat: isCorrect ? Infinity : 0,
-                        repeatDelay: 0.5
-                      }}
-                    >
-                      {feedback}
-                    </motion.div>
+                    {feedback}
                   </motion.div>
                 )}
               </AnimatePresence>

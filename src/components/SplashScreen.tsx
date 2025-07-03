@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Sparkles, Volume2, VolumeX } from 'lucide-react'
+import { Play, Sparkles } from 'lucide-react'
 import { useAudio } from '../hooks/useAudio'
+import SoundButton from './SoundButton'
 
 interface SplashScreenProps {
   onStart: (username: string) => void
@@ -9,55 +10,28 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
   const [username, setUsername] = useState('')
-  const [isMuted, setIsMuted] = useState(false)
-  const { playAudio, stopAudio } = useAudio()
+  const [showNameEntry, setShowNameEntry] = useState(false)
+  const { isMuted, toggleMute, playAudio } = useAudio()
 
-  useEffect(() => {
-    // Start playing splash music when component mounts
+  const handleEngineStart = async () => {
+    // Start splash music when user interacts (autoplay compliance)
     if (!isMuted) {
-      playAudio('splash-music.mp3')
+      await playAudio('https://gahosting.website/sounds/splash-music.mp3')
     }
-
-    // Cleanup: stop music when component unmounts
-    return () => {
-      stopAudio()
-    }
-  }, [])
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted)
-    if (!isMuted) {
-      stopAudio()
-    } else {
-      playAudio('splash-music.mp3')
-    }
+    setShowNameEntry(true)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (username.trim()) {
-      // Stop splash music before starting game
-      stopAudio()
       onStart(username.trim())
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Mute/Unmute Button */}
-      <motion.button
-        onClick={toggleMute}
-        className="absolute top-4 right-4 z-20 p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        {isMuted ? (
-          <VolumeX className="w-6 h-6 text-bluey-blue" />
-        ) : (
-          <Volume2 className="w-6 h-6 text-bluey-blue" />
-        )}
-      </motion.button>
-
+      <SoundButton isMuted={isMuted} onToggle={toggleMute} />
+      
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {[...Array(20)].map((_, i) => (
@@ -124,49 +98,68 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
           with Bluey! 🎉
         </motion.p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <motion.div
+        {!showNameEntry ? (
+          <motion.button
+            onClick={handleEngineStart}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
-          >
-            <label className="block text-lg font-bold text-bluey-blue mb-3">
-              What's your name, mate? 🌟
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-6 py-4 text-xl text-center rounded-full border-4 border-bluey-blue focus:border-bluey-purple focus:outline-none font-bold"
-              placeholder="Enter your name here!"
-              maxLength={20}
-            />
-          </motion.div>
-
-          <motion.button
-            type="submit"
-            disabled={!username.trim()}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.9 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            className="btn-primary w-full flex items-center justify-center gap-3"
           >
             <Play className="w-6 h-6" />
-            Let's Go Play Some Maths!
+            Start Your Maths Engine!
             <Sparkles className="w-6 h-6" />
           </motion.button>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <label className="block text-lg font-bold text-bluey-blue mb-3">
+                What's your name, mate? 🌟
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-6 py-4 text-xl text-center rounded-full border-4 border-bluey-blue focus:border-bluey-purple focus:outline-none font-bold"
+                placeholder="Enter your name here!"
+                maxLength={20}
+                autoFocus
+              />
+            </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1 }}
-          className="mt-6 text-sm text-bluey-purple"
-        >
-          Get ready for an amazing adventure! 🚀
-        </motion.div>
+            <motion.button
+              type="submit"
+              disabled={!username.trim()}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            >
+              <Play className="w-6 h-6" />
+              Let's Go Play Some Maths!
+              <Sparkles className="w-6 h-6" />
+            </motion.button>
+          </form>
+        )}
+
+        {showNameEntry && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 text-sm text-bluey-purple"
+          >
+            Get ready for an amazing adventure! 🚀
+          </motion.div>
+        )}
       </motion.div>
     </div>
   )
