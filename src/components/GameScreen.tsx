@@ -312,7 +312,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="text-6xl"
+            className="text-4xl sm:text-6xl"
           >
             {currentQuestion.objects.group1}
           </motion.div>
@@ -320,7 +320,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
       }
       
       objects.push(
-        <div key="plus" className="text-8xl font-bold text-bluey-blue mx-4">+</div>
+        <div key="plus" className="text-6xl sm:text-8xl font-bold text-bluey-blue mx-2 sm:mx-4">+</div>
       )
       
       for (let i = 0; i < currentQuestion.num2; i++) {
@@ -330,7 +330,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: (currentQuestion.num1 + i) * 0.1 }}
-            className="text-6xl"
+            className="text-4xl sm:text-6xl"
           >
             {currentQuestion.objects.group2}
           </motion.div>
@@ -346,7 +346,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
             initial={{ scale: 0 }}
             animate={{ scale: 1, opacity: isRemoved ? 0.3 : 1 }}
             transition={{ delay: i * 0.1 }}
-            className={`text-6xl ${isRemoved ? 'line-through' : ''}`}
+            className={`text-4xl sm:text-6xl ${isRemoved ? 'line-through' : ''}`}
           >
             {currentQuestion.objects.group1}
           </motion.div>
@@ -363,14 +363,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: (group * currentQuestion.num2 + item) * 0.1 }}
-              className="text-4xl"
+              className="text-2xl sm:text-4xl"
             >
               {currentQuestion.objects.group1}
             </motion.div>
           )
         }
         objects.push(
-          <div key={`group-${group}`} className="flex flex-wrap gap-1 p-2 border-2 border-dashed border-bluey-blue rounded-lg">
+          <div key={`group-${group}`} className="flex flex-wrap gap-1 p-1 sm:p-2 border-2 border-dashed border-bluey-blue rounded-lg">
             {groupObjects}
           </div>
         )
@@ -389,14 +389,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: (group * itemsPerGroup + item) * 0.1 }}
-              className="text-4xl"
+              className="text-2xl sm:text-4xl"
             >
               {currentQuestion.objects.group1}
             </motion.div>
           )
         }
         objects.push(
-          <div key={`div-group-${group}`} className="flex flex-wrap gap-1 p-2 border-2 border-dashed border-bluey-green rounded-lg">
+          <div key={`div-group-${group}`} className="flex flex-wrap gap-1 p-1 sm:p-2 border-2 border-dashed border-bluey-green rounded-lg">
             {groupObjects}
           </div>
         )
@@ -404,7 +404,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
     }
 
     return (
-      <div className="flex flex-wrap items-center justify-center gap-4 mb-8 p-4">
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-8 p-2 sm:p-4">
         {objects}
       </div>
     )
@@ -413,37 +413,37 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
   if (!currentQuestion) return <div>Loading...</div>
 
   return (
-    <div className="min-h-screen p-4 relative">
+    <div className="min-h-screen p-2 sm:p-4 relative">
       {showCelebration && <Confetti recycle={false} numberOfPieces={200} />}
       
       <SoundButton isMuted={isMuted} onToggle={toggleMute} />
       
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-3 sm:mb-6">
         <button
           onClick={onHome}
-          className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-1 sm:gap-2 bg-white rounded-full px-2 py-1 sm:px-4 sm:py-2 shadow-lg hover:shadow-xl transition-all"
         >
-          <Home className="w-5 h-5 text-bluey-blue" />
-          <span className="font-bold text-bluey-blue">Home</span>
+          <Home className="w-4 h-4 sm:w-5 sm:h-5 text-bluey-blue" />
+          <span className="font-bold text-bluey-blue text-sm sm:text-base">Home</span>
         </button>
         
         <div className="text-center">
-          <h2 className="text-2xl font-fun text-white">
+          <h2 className="text-lg sm:text-2xl font-fun text-white">
             {user.username}'s Math Adventure
           </h2>
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <span className="bg-white rounded-full px-4 py-1 text-bluey-blue font-bold">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-1 sm:mt-2">
+            <span className="bg-white rounded-full px-2 py-1 sm:px-4 sm:py-1 text-bluey-blue font-bold text-xs sm:text-base">
               {currentOperation.name.charAt(0).toUpperCase() + currentOperation.name.slice(1)} - Level {user.current_level}
             </span>
-            <span className="bg-bluey-yellow rounded-full px-4 py-1 text-white font-bold flex items-center gap-1">
-              <Star className="w-4 h-4" />
+            <span className="bg-bluey-yellow rounded-full px-2 py-1 sm:px-4 sm:py-1 text-white font-bold flex items-center gap-1 text-xs sm:text-base">
+              <Star className="w-3 h-3 sm:w-4 sm:h-4" />
               {score}
             </span>
           </div>
         </div>
         
-        <div className="w-20"></div>
+        <div className="w-12 sm:w-20"></div>
       </div>
 
       {/* Game Content */}
@@ -456,19 +456,33 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
               animate={{ scale: 1, opacity: 1 }}
               className="card-game text-center"
             >
+              {/* Game Author Attribution - Top Center Inside Window */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-4 sm:mb-6"
+              >
+                <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 sm:px-4 sm:py-2 shadow-lg inline-block">
+                  <p className="text-xs sm:text-sm font-bold text-bluey-blue">
+                    Game Author:- Your Poppy
+                  </p>
+                </div>
+              </motion.div>
+
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 0.5, repeat: Infinity }}
               >
-                <Trophy className="w-24 h-24 text-bluey-yellow mx-auto mb-4" />
+                <Trophy className="w-16 h-16 sm:w-24 sm:h-24 text-bluey-yellow mx-auto mb-2 sm:mb-4" />
               </motion.div>
-              <h2 className="text-4xl font-fun text-bluey-blue mb-4">
+              <h2 className="text-2xl sm:text-4xl font-fun text-bluey-blue mb-2 sm:mb-4">
                 Amazing work, {user.username}! 🎉
               </h2>
-              <p className="text-xl text-bluey-purple mb-6">
+              <p className="text-lg sm:text-xl text-bluey-purple mb-4 sm:mb-6">
                 You've completed Level {user.current_level} of {currentOperation.name}!
               </p>
-              <div className="text-lg text-bluey-blue">
+              <div className="text-base sm:text-lg text-bluey-blue">
                 Moving to the next challenge... 🚀
               </div>
             </motion.div>
@@ -479,12 +493,26 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
               animate={{ y: 0, opacity: 1 }}
               className="card-game text-center"
             >
+              {/* Game Author Attribution - Top Center Inside Window */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-4 sm:mb-6"
+              >
+                <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 sm:px-4 sm:py-2 shadow-lg inline-block">
+                  <p className="text-xs sm:text-sm font-bold text-bluey-blue">
+                    Game Author:- Your Poppy
+                  </p>
+                </div>
+              </motion.div>
+
               {/* Question */}
-              <div className="mb-8">
-                <p className="text-2xl text-bluey-purple mb-4 font-bold">
+              <div className="mb-4 sm:mb-8">
+                <p className="text-lg sm:text-2xl text-bluey-purple mb-2 sm:mb-4 font-bold">
                   Hey {user.username}, can you solve this? 🤔
                 </p>
-                <div className="number-display mb-6">
+                <div className="text-4xl sm:text-6xl md:text-8xl font-bold text-bluey-blue drop-shadow-lg mb-3 sm:mb-6">
                   {currentQuestion.display} = ?
                 </div>
               </div>
@@ -492,12 +520,12 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
               {/* Visual Objects */}
               {renderMathObjects()}
 
-              {/* Multiple Choice Answers */}
-              <div className="space-y-4 mb-6">
-                <p className="text-xl text-bluey-blue font-bold mb-4">
+              {/* Multiple Choice Answers - Now Horizontal on Mobile */}
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                <p className="text-lg sm:text-xl text-bluey-blue font-bold mb-2 sm:mb-4">
                   Choose the correct answer:
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <div className="flex flex-row gap-2 sm:gap-4 justify-center items-center">
                   {currentQuestion.choices.map((choice, index) => (
                     <motion.button
                       key={choice}
@@ -506,7 +534,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
                       whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
                       whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
                       className={`
-                        w-24 h-24 text-3xl font-bold rounded-2xl border-4 transition-all
+                        w-16 h-16 sm:w-24 sm:h-24 text-xl sm:text-3xl font-bold rounded-2xl border-4 transition-all
                         ${selectedAnswer === null 
                           ? 'bg-white border-bluey-blue text-bluey-blue hover:bg-bluey-blue hover:text-white cursor-pointer' 
                           : selectedAnswer === choice
@@ -546,10 +574,10 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
                       rotate: isCorrect ? { duration: 0.6, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 },
                       scale: { duration: 0.3 }
                     }}
-                    className={`mt-6 p-6 rounded-2xl font-bold ${
+                    className={`mt-4 sm:mt-6 p-3 sm:p-6 rounded-2xl font-bold ${
                       isCorrect 
-                        ? 'bg-green-100 text-green-800 border-2 border-green-300 text-4xl' 
-                        : 'bg-blue-100 text-blue-800 border-2 border-blue-300 text-2xl'
+                        ? 'bg-green-100 text-green-800 border-2 border-green-300 text-2xl sm:text-4xl' 
+                        : 'bg-blue-100 text-blue-800 border-2 border-blue-300 text-lg sm:text-2xl'
                     }`}
                   >
                     {feedback}
@@ -558,12 +586,12 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
               </AnimatePresence>
 
               {/* Progress */}
-              <div className="mt-8 flex justify-center">
+              <div className="mt-4 sm:mt-8 flex justify-center">
                 <div className="flex gap-2">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className={`w-4 h-4 rounded-full ${
+                      className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${
                         i < questionsAnswered ? 'bg-bluey-green' : 'bg-gray-300'
                       }`}
                     />
@@ -578,7 +606,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
       {/* Bluey Character - Now a Reset Button */}
       <motion.button
         onClick={handleReset}
-        className="fixed bottom-4 right-4 w-20 h-20 bg-gradient-to-br from-bluey-blue to-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:shadow-3xl transition-all"
+        className="fixed bottom-2 right-2 sm:bottom-4 sm:right-4 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-bluey-blue to-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:shadow-3xl transition-all"
         animate={{
           y: [-5, 5, -5],
           rotate: [-3, 3, -3],
@@ -592,7 +620,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
         whileTap={{ scale: 0.9 }}
         title="Click to restart from Level 1!"
       >
-        <div className="text-3xl">🐕</div>
+        <div className="text-2xl sm:text-3xl">🐕</div>
       </motion.button>
     </div>
   )

@@ -43,7 +43,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
       <SoundButton isMuted={isMuted} onToggle={toggleMute} />
       
       {/* Animated Background Elements */}
@@ -76,6 +76,20 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
         transition={{ duration: 0.8 }}
         className="card-game max-w-md w-full text-center relative z-10"
       >
+        {/* Game Author Attribution - Top Center Inside Window */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-4 sm:mb-6"
+        >
+          <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 sm:px-4 sm:py-2 shadow-lg inline-block">
+            <p className="text-xs sm:text-sm font-bold text-bluey-blue">
+              Game Author:- Your Poppy
+            </p>
+          </div>
+        </motion.div>
+
         {/* Bluey Character Animation */}
         <motion.div
           animate={{
@@ -87,10 +101,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="mb-8"
+          className="mb-4 sm:mb-8"
         >
-          <div className="w-32 h-32 mx-auto bg-gradient-to-br from-bluey-blue to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
-            <div className="text-6xl">🐕</div>
+          <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto bg-gradient-to-br from-bluey-blue to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+            <div className="text-4xl sm:text-6xl">🐕</div>
           </div>
         </motion.div>
 
@@ -98,7 +112,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-4xl md:text-5xl font-fun text-bluey-blue mb-2"
+          className="text-3xl sm:text-4xl md:text-5xl font-fun text-bluey-blue mb-1 sm:mb-2"
         >
           Math Adventure
         </motion.h1>
@@ -107,7 +121,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-xl text-bluey-purple mb-8 font-bold"
+          className="text-lg sm:text-xl text-bluey-purple mb-6 sm:mb-8 font-bold"
         >
           with Bluey! 🎉
         </motion.p>
@@ -121,29 +135,29 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
             transition={{ delay: 0.7 }}
             whileHover={{ scale: isStarting ? 1 : 1.05 }}
             whileTap={{ scale: isStarting ? 1 : 0.95 }}
-            className={`btn-primary w-full flex items-center justify-center gap-3 ${
+            className={`btn-primary w-full flex items-center justify-center gap-2 sm:gap-3 text-lg sm:text-xl py-3 sm:py-4 px-6 sm:px-8 ${
               isStarting ? 'opacity-75 cursor-not-allowed' : ''
             }`}
           >
-            <Play className="w-6 h-6" />
+            <Play className="w-5 h-5 sm:w-6 sm:h-6" />
             {isStarting ? 'Starting Engine...' : 'Start Your Maths Engine!'}
-            <Sparkles className="w-6 h-6" />
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.button>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <label className="block text-lg font-bold text-bluey-blue mb-3">
+              <label className="block text-base sm:text-lg font-bold text-bluey-blue mb-2 sm:mb-3">
                 What's your name, mate? 🌟
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-6 py-4 text-xl text-center rounded-full border-4 border-bluey-blue focus:border-bluey-purple focus:outline-none font-bold"
+                className="w-full px-4 py-3 sm:px-6 sm:py-4 text-lg sm:text-xl text-center rounded-full border-4 border-bluey-blue focus:border-bluey-purple focus:outline-none font-bold"
                 placeholder="Enter your name here!"
                 maxLength={20}
                 autoFocus
@@ -158,11 +172,11 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
               transition={{ delay: 0.4 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:gap-3 text-lg sm:text-xl py-3 sm:py-4 px-6 sm:px-8"
             >
-              <Play className="w-6 h-6" />
+              <Play className="w-5 h-5 sm:w-6 sm:h-6" />
               Let's Go Play Some Maths!
-              <Sparkles className="w-6 h-6" />
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
             </motion.button>
           </form>
         )}
@@ -172,7 +186,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="mt-6 text-sm text-bluey-purple"
+            className="mt-4 sm:mt-6 text-xs sm:text-sm text-bluey-purple"
           >
             Get ready for an amazing adventure! 🚀
           </motion.div>

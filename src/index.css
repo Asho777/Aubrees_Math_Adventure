@@ -20,7 +20,7 @@
   }
   
   .card-game {
-    @apply bg-white rounded-3xl shadow-2xl p-8 border-4 border-bluey-blue;
+    @apply bg-white rounded-3xl shadow-2xl p-4 sm:p-8 border-4 border-bluey-blue;
   }
   
   .number-display {
