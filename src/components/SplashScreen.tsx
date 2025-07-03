@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Sparkles } from 'lucide-react'
-import { useAudio } from '../hooks/useAudio'
+import { useAudioWithFetch } from '../hooks/useAudioWithFetch'
 import SoundButton from './SoundButton'
 
 interface SplashScreenProps {
@@ -11,14 +11,28 @@ interface SplashScreenProps {
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
   const [username, setUsername] = useState('')
   const [showNameEntry, setShowNameEntry] = useState(false)
-  const { isMuted, toggleMute, playAudio } = useAudio()
+  const [isStarting, setIsStarting] = useState(false)
+  const { isMuted, toggleMute, playAudio } = useAudioWithFetch()
 
   const handleEngineStart = async () => {
-    // Start splash music when user interacts (autoplay compliance)
-    if (!isMuted) {
-      await playAudio('https://gahosting.website/sounds/splash-music.mp3')
+    // Prevent multiple clicks
+    if (isStarting || showNameEntry) return
+    
+    setIsStarting(true)
+    
+    try {
+      // Show name entry immediately for better UX
+      setShowNameEntry(true)
+      
+      // Start splash music in parallel (don't await)
+      if (!isMuted) {
+        playAudio('https://gahosting.website/sounds/splash-music.mp3').catch(error => {
+          console.warn('Audio playback failed:', error)
+        })
+      }
+    } finally {
+      setIsStarting(false)
     }
-    setShowNameEntry(true)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,15 +115,18 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
         {!showNameEntry ? (
           <motion.button
             onClick={handleEngineStart}
+            disabled={isStarting}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="btn-primary w-full flex items-center justify-center gap-3"
+            whileHover={{ scale: isStarting ? 1 : 1.05 }}
+            whileTap={{ scale: isStarting ? 1 : 0.95 }}
+            className={`btn-primary w-full flex items-center justify-center gap-3 ${
+              isStarting ? 'opacity-75 cursor-not-allowed' : ''
+            }`}
           >
             <Play className="w-6 h-6" />
-            Start Your Maths Engine!
+            {isStarting ? 'Starting Engine...' : 'Start Your Maths Engine!'}
             <Sparkles className="w-6 h-6" />
           </motion.button>
         ) : (

@@ -30,15 +30,13 @@ export const useAudio = (): AudioHook => {
       return audioCache.current.get(url)!
     }
 
+    // Back to original working order
     const proxies = [
-      // AllOrigins - most reliable for audio
       `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      // CORS.io
       `https://cors.io/?${url}`,
-      // Proxy via fetch with different approach
       `https://corsproxy.io/?${encodeURIComponent(url)}`,
-      // ThingProxy
-      `https://thingproxy.freeboard.io/fetch/${url}`
+      `https://thingproxy.freeboard.io/fetch/${url}`,
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
     ]
 
     for (const proxyUrl of proxies) {
@@ -66,20 +64,6 @@ export const useAudio = (): AudioHook => {
       }
     }
 
-    // If all proxies fail, try a direct approach with a simple proxy
-    try {
-      const simpleProxy = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-      const response = await fetch(simpleProxy)
-      if (response.ok) {
-        const audioBlob = await response.blob()
-        const blobUrl = URL.createObjectURL(audioBlob)
-        audioCache.current.set(url, blobUrl)
-        return blobUrl
-      }
-    } catch (error) {
-      console.warn('Simple proxy failed:', error)
-    }
-
     console.warn('All CORS proxies failed, using original URL as fallback')
     return url
   }
@@ -96,7 +80,7 @@ export const useAudio = (): AudioHook => {
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Audio loading timeout'))
-        }, 15000) // Increased timeout for proxy loading
+        }, 15000)
         
         const cleanup = () => {
           clearTimeout(timeout)

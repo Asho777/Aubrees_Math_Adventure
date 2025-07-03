@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Trophy, ArrowRight, Home, Volume2 } from 'lucide-react'
 import Confetti from 'react-confetti'
 import { supabase, User, GameProgress } from '../lib/supabase'
-import { useAudio } from '../hooks/useAudio'
+import { useAudioWithFetch } from '../hooks/useAudioWithFetch'
 import SoundButton from './SoundButton'
 
 interface GameScreenProps {
@@ -69,7 +69,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ user, onHome }) => {
   const [isCorrect, setIsCorrect] = useState(false)
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [showLevelComplete, setShowLevelComplete] = useState(false)
-  const { isMuted, toggleMute, stopAudio, playSuccessSound } = useAudio()
+  const { isMuted, toggleMute, stopAudio, playSuccessSound } = useAudioWithFetch()
 
   const currentOperation = operations.find(op => op.name === user.current_operation)!
   const maxLevel = currentOperation.levels

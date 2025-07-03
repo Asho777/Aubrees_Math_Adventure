@@ -22,83 +22,113 @@ export const useAudioWithFetch = (): AudioHook => {
   const [lastSuccessIndex, setLastSuccessIndex] = useState(-1)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const successAudioRef = useRef<HTMLAudioElement | null>(null)
-  const audioCache = useRef<Map<string, string>>(new Map())
+  const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map())
+  const preloadingRef = useRef<Set<string>>(new Set())
 
-  const fetchAudioAsBlob = async (url: string): Promise<string> => {
+  // Optimized proxy order - fastest first
+  const proxies = [
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+    'https://thingproxy.freeboard.io/fetch/',
+    'https://cors-anywhere.herokuapp.com/'
+  ]
+
+  const createAudioElement = async (originalUrl: string): Promise<HTMLAudioElement> => {
     // Check cache first
-    if (audioCache.current.has(url)) {
-      return audioCache.current.get(url)!
+    if (audioCache.current.has(originalUrl)) {
+      const cachedAudio = audioCache.current.get(originalUrl)!
+      // Reset cached audio
+      cachedAudio.currentTime = 0
+      return cachedAudio
     }
 
-    try {
-      // Try multiple CORS proxy services
-      const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        `https://cors-anywhere.herokuapp.com/${url}`,
-        `https://thingproxy.freeboard.io/fetch/${url}`
-      ]
+    // Check if already preloading
+    if (preloadingRef.current.has(originalUrl)) {
+      // Wait for preloading to complete
+      return new Promise((resolve) => {
+        const checkCache = () => {
+          if (audioCache.current.has(originalUrl)) {
+            const cachedAudio = audioCache.current.get(originalUrl)!
+            cachedAudio.currentTime = 0
+            resolve(cachedAudio)
+          } else {
+            setTimeout(checkCache, 100)
+          }
+        }
+        checkCache()
+      })
+    }
 
-      let audioBlob: Blob | null = null
-      
-      for (const proxyUrl of proxies) {
+    preloadingRef.current.add(originalUrl)
+
+    try {
+      // Try proxies in parallel for faster response
+      const proxyPromises = proxies.map(async (proxy) => {
         try {
+          const proxyUrl = proxy + encodeURIComponent(originalUrl)
           const response = await fetch(proxyUrl, {
             method: 'GET',
             headers: {
               'Accept': 'audio/*,*/*;q=0.9',
-            }
+            },
+            signal: AbortSignal.timeout(3000) // 3 second timeout per proxy
           })
           
           if (response.ok) {
-            audioBlob = await response.blob()
-            break
+            const audioBlob = await response.blob()
+            const blobUrl = URL.createObjectURL(audioBlob)
+            return blobUrl
           }
-        } catch (proxyError) {
-          console.warn(`Proxy failed: ${proxyUrl}`, proxyError)
-          continue
+          throw new Error(`HTTP ${response.status}`)
+        } catch (error) {
+          throw new Error(`Proxy ${proxy} failed: ${error}`)
         }
+      })
+
+      // Race the proxies - use the first successful one
+      let audioUrl: string
+      try {
+        audioUrl = await Promise.any(proxyPromises)
+      } catch {
+        // All proxies failed, try original URL
+        console.warn('All proxies failed, using original URL')
+        audioUrl = originalUrl
       }
 
-      if (!audioBlob) {
-        throw new Error('All CORS proxies failed')
-      }
-
-      const blobUrl = URL.createObjectURL(audioBlob)
-      audioCache.current.set(url, blobUrl)
-      return blobUrl
-      
-    } catch (error) {
-      console.error('Failed to fetch audio via proxy:', error)
-      // Fallback to original URL
-      return url
-    }
-  }
-
-  const createAudioElement = async (originalUrl: string): Promise<HTMLAudioElement> => {
-    try {
-      const audioUrl = await fetchAudioAsBlob(originalUrl)
       const audio = new Audio(audioUrl)
       audio.preload = 'auto'
       
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Audio loading timeout'))
-        }, 10000)
+        }, 5000) // Reduced timeout
         
-        audio.addEventListener('canplaythrough', () => {
+        const handleCanPlay = () => {
           clearTimeout(timeout)
+          audio.removeEventListener('canplaythrough', handleCanPlay)
+          audio.removeEventListener('error', handleError)
+          
+          // Cache the audio element
+          audioCache.current.set(originalUrl, audio)
+          preloadingRef.current.delete(originalUrl)
           resolve(audio)
-        }, { once: true })
+        }
         
-        audio.addEventListener('error', (e) => {
+        const handleError = (e: Event) => {
           clearTimeout(timeout)
+          audio.removeEventListener('canplaythrough', handleCanPlay)
+          audio.removeEventListener('error', handleError)
+          preloadingRef.current.delete(originalUrl)
           reject(new Error(`Audio loading failed: ${e}`))
-        }, { once: true })
+        }
+        
+        audio.addEventListener('canplaythrough', handleCanPlay, { once: true })
+        audio.addEventListener('error', handleError, { once: true })
         
         audio.load()
       })
     } catch (error) {
+      preloadingRef.current.delete(originalUrl)
       console.error('Error creating audio element:', error)
       // Final fallback
       const fallbackAudio = new Audio(originalUrl)
@@ -107,18 +137,42 @@ export const useAudioWithFetch = (): AudioHook => {
     }
   }
 
+  // Preload splash music on hook initialization
+  useEffect(() => {
+    const preloadSplashMusic = async () => {
+      try {
+        await createAudioElement('https://gahosting.website/sounds/splash-music.mp3')
+      } catch (error) {
+        console.warn('Failed to preload splash music:', error)
+      }
+    }
+    
+    preloadSplashMusic()
+  }, [])
+
   const playAudio = async (url: string): Promise<void> => {
     if (isMuted) return
 
     try {
-      // Stop current audio if playing
+      // Stop and cleanup current audio if playing
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current.currentTime = 0
+        audioRef.current.onended = null
+        audioRef.current.onpause = null
       }
 
       audioRef.current = await createAudioElement(url)
       audioRef.current.loop = url.includes('splash-music.mp3')
+      
+      // Add event listeners with proper cleanup
+      audioRef.current.onended = () => {
+        setIsPlaying(false)
+      }
+
+      audioRef.current.onpause = () => {
+        setIsPlaying(false)
+      }
       
       try {
         await audioRef.current.play()
@@ -127,14 +181,6 @@ export const useAudioWithFetch = (): AudioHook => {
         console.warn('Autoplay prevented:', playError)
         setIsPlaying(false)
       }
-
-      audioRef.current.addEventListener('ended', () => {
-        setIsPlaying(false)
-      })
-
-      audioRef.current.addEventListener('pause', () => {
-        setIsPlaying(false)
-      })
 
     } catch (error) {
       console.error('Error playing audio:', error)
@@ -146,6 +192,13 @@ export const useAudioWithFetch = (): AudioHook => {
     if (isMuted) return
 
     try {
+      // Stop any existing success sound first
+      if (successAudioRef.current) {
+        successAudioRef.current.pause()
+        successAudioRef.current.currentTime = 0
+        successAudioRef.current.onended = null
+      }
+
       // Get next sound in sequence (avoid repeating the same sound)
       let nextIndex
       do {
@@ -156,6 +209,13 @@ export const useAudioWithFetch = (): AudioHook => {
       const soundUrl = successSounds[nextIndex]
 
       successAudioRef.current = await createAudioElement(soundUrl)
+      
+      // Clean up when sound ends
+      successAudioRef.current.onended = () => {
+        if (successAudioRef.current) {
+          successAudioRef.current.onended = null
+        }
+      }
       
       try {
         await successAudioRef.current.play()
@@ -172,10 +232,13 @@ export const useAudioWithFetch = (): AudioHook => {
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
+      audioRef.current.onended = null
+      audioRef.current.onpause = null
     }
     if (successAudioRef.current) {
       successAudioRef.current.pause()
       successAudioRef.current.currentTime = 0
+      successAudioRef.current.onended = null
     }
     setIsPlaying(false)
   }
@@ -193,13 +256,14 @@ export const useAudioWithFetch = (): AudioHook => {
   useEffect(() => {
     return () => {
       stopAudio()
-      // Clean up blob URLs
-      audioCache.current.forEach((blobUrl) => {
-        if (blobUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(blobUrl)
+      // Clean up cached audio elements and blob URLs
+      audioCache.current.forEach((audio, url) => {
+        if (audio.src.startsWith('blob:')) {
+          URL.revokeObjectURL(audio.src)
         }
       })
       audioCache.current.clear()
+      preloadingRef.current.clear()
     }
   }, [])
 
